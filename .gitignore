@@ -1,0 +1,10 @@
+.venv
+.history
+datasets/Data.rar
+datasets/Data/
+model/
+
+*pycache*
+
+predictions/
+test.txt
