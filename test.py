@@ -2,7 +2,11 @@ import argparse
 import torch
 import os
 import numpy as np
-import datasets.crowd_gauss as crowd
+import argparse
+import torch
+import os
+import numpy as np
+import datasets.crowd as crowd
 from network import pvt_cls as TCN
 import torch.nn.functional as F
 from scipy.io import savemat 
@@ -12,19 +16,20 @@ parser = argparse.ArgumentParser(description='Test ')
 parser.add_argument('--device', default='0', help='assign device')
 parser.add_argument('--batch-size', type=int, default=8, help='train batch size')
 parser.add_argument('--crop-size', type=int, default=256, help='the crop size of the train image')
-parser.add_argument('--model-path', type=str, default='/scratch/users/k2254235/ckpts/SEMI/Treeformer/best_model_mae-21.49_epoch-1759.pth', help='saved model path')
-parser.add_argument('--data-path', type=str, default='/users/k2254235/Lab/TCT/Dataset/London_103050/', help='dataset path')
+parser.add_argument('--model-path', type=str, default='./model/best_model.pth', help='saved model path')
+parser.add_argument('--data-path', type=str, default='./datasets/Data/', help='dataset path')
 parser.add_argument('--dataset', type=str, default='TC')
 
 def test(args, isSave = True):
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device  # set vis gpu
-    device = torch.device('cuda')
+    # device = torch.device('cuda')
+    device = torch.device('cpu')
 
     model_path = args.model_path
     crop_size = args.crop_size
     data_path = args.data_path
 
-    dataset = crowd.Crowd_TC(os.path.join(data_path, 'test_data'), crop_size, 1, method='val')
+    dataset = crowd.Crowd_TC(os.path.join(data_path, 'test_data/hesam'), crop_size, 1, method='val')
     dataloader = torch.utils.data.DataLoader(dataset, 1, shuffle=False, num_workers=1, pin_memory=True)
         
     model = TCN.pvt_treeformer(pretrained=False)
@@ -92,7 +97,7 @@ def test(args, isSave = True):
             image_errs.append(img_err)
             result.append([name, count[0].item(), torch.sum(outputs).item(), img_err])
             
-            savemat('predictions/'+name[0]+'.mat', {'estimation':np.squeeze(outputs.cpu().data.numpy()), 
+            savemat('./predictions/'+name[0]+'.mat', {'estimation':np.squeeze(outputs.cpu().data.numpy()), 
             'image': np.squeeze(inputs.cpu().data.numpy()), 'gt': np.squeeze(imgauss.cpu().data.numpy())})
             l=l+1
             
